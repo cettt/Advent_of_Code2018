@@ -13,7 +13,6 @@ while(length(finished) < length(a)) {
 
 paste(finished, collapse = "")
 
-
 #part2--------
 finished2 <- c()
 t_all <- 0
@@ -28,7 +27,6 @@ while(length(finished2) < length(a)) {
     w <- c(w, new_w)
     w_t <- c(w_t - t_next, 60 + sapply(new_w, function(x) which(LETTERS == x)))
   } else w_t <- w_t - t_next
-  w
   t_next <- min(w_t)
   t_all <- t_all + t_next
   finished2 <- c(finished2, w[which.min(w_t)])
@@ -36,3 +34,4 @@ while(length(finished2) < length(a)) {
   w_t <- w_t[-which.min(w_t)]
 }
 
+t_all

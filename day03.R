@@ -1,30 +1,30 @@
 data03 <- read.table("input/day03.txt", comment.char = "", sep = "@")
 
-data03 <- data.frame(v1 = 1:3, v2 = c(" 1,3: 4x4", " 3,1: 4x4", " 5,5: 2x2"))
+x1 <- as.integer(sub(  " (\\d+),.*", "\\1", data03[,2]))
+y1 <- as.integer(sub(".*,(\\d+):.*", "\\1", data03[,2]))
+x2 <- x1 + as.integer(sub(".* (\\d+)x.*", "\\1", data03[,2])) - 1
+y2 <- y1 + as.integer(sub(".*x(\\d+)", "\\1", data03[,2])) - 1
 
-make_square <- function(x) {
- s <- as.integer(sub(" (\\d+),.*", "\\1", x)) + as.integer(sub(".*,(\\d+):.*", "\\1", x))*1i
- w <- as.integer(sub(".* (\\d+)x.*", "\\1", x))
- h <- as.integer(sub(".*x(\\d+)", "\\1", x))
- rep(Re(s) + seq_len(w) - 1, h) + rep(Im(s) + seq_len(h) - 1, each = w)*1i
+#part1---------
+make_square <- function(i, j) {
+  xd <-  max(x1[c(i, j)])
+  xu <-  min(x2[c(i, j)])
+  yd <-  max(y1[c(i, j)])
+  yu <-  min(y2[c(i, j)])
+  rep(seq(xd, xu), yu - yd + 1) + rep(seq(yd, yu), each = xu - xd + 1)*1i
 }
 
-#part1-------
-squares <- sapply(data03, make_square)
-sum(table(unlist(squares)) > 1)
+check_intersect <- function(i) {
+  idx <- which((x2 >= x1[i] & x1 <= x2[i] & y2 >= y1[i] & y1 <= y2[i]))
+  unlist(sapply(idx[idx > i], function(j) make_square(i, j)))
+}
+
+length(unique(unlist(sapply(seq_along(x1), check_intersect))))
+
 
 #part2---------
-data03$x1 <- as.integer(sub(  " (\\d+),.*", "\\1", data03[,2]))
-data03$y1 <- as.integer(sub(".*,(\\d+):.*", "\\1", data03[,2]))
-data03$x2 <- data03$x1 + as.integer(sub(".* (\\d+)x.*", "\\1", data03[,2])) - 1
-data03$y2 <- data03$y1 + as.integer(sub(".*x(\\d+)", "\\1", data03[,2])) - 1
-
 check_nointersect <- function(i) {
-  all(
-    (data03$x2[-i] < data03$x1[i] | data03$x1[-i] > data03$x2[i]) | 
-    (data03$y2[-i] < data03$y1[i] | data03$y1[-i] > data03$y2[i])
-  )
+  all(x2[-i] < x1[i] | x1[-i] > x2[i] | y2[-i] < y1[i] | y1[-i] > y2[i])
 }
 
-
-data03[which(sapply(seq_len(nrow(data03)), check_nointersect)), 1]
+which(sapply(seq_along(x1), check_nointersect))

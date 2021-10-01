@@ -1,25 +1,23 @@
 data05 <- readLines("input/day05.txt")
 
-
-pat <- paste(c(paste0(letters, LETTERS), paste0(LETTERS, letters)), collapse = ")|(")
-pat <- paste0("(", pat, ")")
-
-
-# part1---------
-x <- data05
-while (grepl(pat, x)) {
-  x <- gsub(pat, "", x)
+react_polimer <- function(x = data05, let = NULL) {
+  while (TRUE) {
+    x_old <- x
+    for (a in setdiff(letters, let)) {
+      x <- gsub(paste0(a, toupper(a)), "", gsub(paste0(toupper(a), a), "", x))
+    }
+    if (x == x_old) break;
+  }
+  return(x)
 }
-nchar(x)
 
+#part1 ------
+rp <- react_polimer()  
+nchar(rp)
 
 # part2-------------
-improve_poly <- function(k) {
-  y <- gsub(paste(letters[k], LETTERS[k], sep = "|"), "", x)
-  while (grepl(pat, y)) {
-    y <- gsub(pat, "", y)
-  }
-  nchar(y)
+improve_poly <- function(a) {
+  nchar(react_polimer(gsub(a, "", gsub(toupper(a), "", rp)), a))
 }
 
-min(sapply(seq_along(letters), improve_poly))
+min(sapply(letters, improve_poly))

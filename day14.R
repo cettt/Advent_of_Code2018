@@ -23,6 +23,7 @@ paste0(x[-seq_len(ll)][1:10], collapse = "")
 
 
 #part2-----------------------
+#TODO find faster solution. This is super slow!
 x2 <- floor((ll / 10^(5:0))) %% 10
 
 while (any(tail(x, 6) != x2)) {
