@@ -1,10 +1,9 @@
 data23 <- gsub("[<pos=> r]", "", readLines("input/day23.txt"))
-df <- do.call(rbind, lapply(strsplit(data23, ","), function(x) setNames(as.numeric(x), c("x", "y", "z", "r"))))
+df <- do.call(rbind, lapply(strsplit(data23, ","), as.numeric))
 
 #part 1--------
 rmax <- as.numeric(df[which.max(df[,4]), ])
-sum(apply(df[,-4], 1, function(x) sum(abs(x-rmax[-4])) <= rmax[4]))
-
+sum(colSums(abs(t(df[,1:3]) - rmax[1:3])) <= rmax[4])
 
 #part2----------
 zoom_square <- function(xyz) {
@@ -13,9 +12,8 @@ zoom_square <- function(xyz) {
 
 count_bots_zoom <- function(xyz, zoom) {
   
-  if (zoom == 1) {
-    return(sum(colSums(abs(t(df[,1:3]) - xyz)) <= df[,4]))
-  }
+  if (zoom == 1) return(sum(colSums(abs(t(df[,1:3]) - xyz)) <= df[,4]))
+  
     newx <- pmax(xyz[1]*zoom, df[ ,1]) - pmax(df[, 1] - (xyz[1] + 1)*zoom, 0)
     newy <- pmax(xyz[2]*zoom, df[ ,2]) - pmax(df[, 2] - (xyz[2] + 1)*zoom, 0)
     newz <- pmax(xyz[3]*zoom, df[ ,3]) - pmax(df[, 3] - (xyz[3] + 1)*zoom, 0)
@@ -42,5 +40,4 @@ for (maxbots in (nrow(df):1)) {
   if (zoom == 1) break;
 }
 
-res <- subset(zoomed_grid, nbots == max(nbots))
-min(apply(res[,1:3], 1, function(x) sum(abs(x))))
+unname(min(rowSums(abs(zoomed_grid[,1:3]))))
