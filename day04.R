@@ -39,7 +39,7 @@ data_complete %>%
   summarise(asleep = sum(asleep), .groups = "drop") %>%
   top_n(1, asleep) %>%
   ungroup() %>%
-  semi_join(data_complete, ., by = "guard_id") %
+  semi_join(data_complete, ., by = "guard_id") %>%
   group_by(guard_id, tme) %>% 
   summarise(asleep = sum(asleep), .groups = "drop") %>%
   top_n(1, asleep) %>% 
