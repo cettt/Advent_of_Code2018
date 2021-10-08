@@ -1,32 +1,26 @@
-id <- as.integer(read.table("input/day11.txt"))
+data11 <- as.integer(read.table("input/day11.txt"))
 
 calculate_pow <- function(x, y) {
-  z <- floor(((x + 10) * y + id) * (x + 10) / 100)
-  z %% 10 - 5
+  z <- (floor(((x + 10L) * y + data11) * (x + 10L) / 100L)) %% 10L - 5L
 }
-pow_field <- outer(1:300, 1:300, calculate_pow)
-cur_max <- sum(pow_field[1:3, 1:3])
 
-#part1-----------
-find_field <- function(n) {
-  cur_max <- sum(pow_field[1:n, 1:n])
+pow_field <- outer(seq_len(300), seq_len(300), calculate_pow)
+
+run_cumsum <- function(x, n) {
+  y <- cumsum(x)
+  (y - c(rep(0, n), y[seq_len(300L - n)]))[-seq_len(n - 1L)]
+}
+
+find_field <- function(n, part1 = TRUE) {
+  pf <- apply(apply(pow_field, 1, run_cumsum, n = n), 1, run_cumsum, n = n)
   
-  for (x in 1:(300- n + 1)) {
-    for (y in 1:(300- n + 1)) {
-      pow_sq <- sum(pow_field[1:n + x - 1, 1:n + y - 1])
-      if (pow_sq > cur_max) {
-        cur_max <- pow_sq
-        res <- c(x, y)
-      }
-    }
-  }
-  return(c(cur_max, res, n))
+  res <- paste(which(pf == max(pf), arr.ind = TRUE)[1,], collapse = ",")
+  if (part1) res else c(max(pf), paste(res, n, sep = ","))
 }
-paste(find_field(3)[2:3], collapse = ",")
 
-#part2--------
-#TODO elegantere Lösung finden
-res_size <- sapply(1:300, find_field)
+#part1-----
+find_field(3)
 
-paste(res_size[2:4 ,which.max(res_size[1, ])], collapse = ",")
-#"233,187,13"
+#part2----------
+a <- sapply(2:299, find_field, part1 = FALSE)
+a[2, which.max(as.integer(a[1, ]))]
