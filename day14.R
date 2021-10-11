@@ -37,9 +37,11 @@ make_traj <- function(i, z) {
 }
 
 add_recipe <- function(rec, new_rec) {
-  nr <- rep(1L, length(new_rec) + sum(new_rec > 9L))
-  nr[seq_along(new_rec) + cumsum(new_rec > 9L)] <- new_rec
-  nr[nr > 9L] <- nr[nr > 9L] - 10L
+  idx <- new_rec > 9L
+  idx2 <- which(idx) + seq_len(sum(idx))
+  nr <- rep(1L, length(new_rec) + sum(idx))
+  nr[seq_along(new_rec) + cumsum(idx)] <- new_rec
+  nr[idx2] <- nr[idx2] - 10L
   c(rec, nr)
 }
 
@@ -109,6 +111,4 @@ res + check_idx - 5L
 #  or pos[1] = 6 then    7, 9, 14
 # a simple check shows that no matter what pos[1] %in% c(1,...,10) we choose we always end up at pos[1] = 24 in 5 steps or less 
 # so once we now that pos1 == 24 we basically now the remaining trajectory.
-# But how can we use this effectively?
-# We can definitely continue from where part1 left
 
