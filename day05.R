@@ -14,12 +14,12 @@ react_polimer <- function(x = data05, let = 27) {
 }
 
 #part1 ------
-rp <- react_polimer2()  
+rp <- react_polimer()  
 nchar(rp)
 
 # part2-------------
 improve_poly <- function(a) {
-  nchar(react_polimer2(gsub(a, "", gsub(toupper(a), "", rp)), which(letters == a)))
+  nchar(react_polimer(gsub(a, "", gsub(toupper(a), "", rp)), which(letters == a)))
 }
 
 min(sapply(letters, improve_poly))
