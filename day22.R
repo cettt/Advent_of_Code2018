@@ -5,8 +5,8 @@ tar <- as.integer(strsplit(gsub("target: ", "", data22[2]), ",")[[1]])
 
 erro_mat <- matrix(NA_real_, nrow = tar[2] + 20, ncol = tar[1] + 20)
 erro_mat[1, 1] <- depth %% 20183
-erro_mat[-1, 1] <- ((seq_len(nrow(erro_mat) - 1) * 48271L) + depth) %% 20183 #x = 0
-erro_mat[1, -1] <- ((seq_len(ncol(erro_mat) - 1) * 16807L) + depth) %% 20183 #y = 0
+erro_mat[-1, 1] <- ((seq_len(nrow(erro_mat) - 1L) * 48271L) + depth) %% 20183L #x = 0
+erro_mat[1, -1] <- ((seq_len(ncol(erro_mat) - 1L) * 16807L) + depth) %% 20183L #y = 0
 
 for (k in 2:nrow(erro_mat)) {
   for (i in 2:ncol(erro_mat)) {
@@ -14,10 +14,11 @@ for (k in 2:nrow(erro_mat)) {
   }
 }
 
-erro_mat[tar[2] + 1, tar[1] + 1] <- depth %% 20183
+erro_mat <- erro_mat %% 3L
+erro_mat[tar[2] + 1L, tar[1] + 1L] <- 0L
 
 #part 1-----------
-sum(table(erro_mat[seq_len(tar[2] + 1), seq_len(tar[1] + 1)] %% 3) * 0:2)
+sum(table(erro_mat[seq_len(tar[2] + 1), seq_len(tar[1] + 1)]) * 0:2)
 
 #part2-----------
 co_2d <- complex(
@@ -25,54 +26,51 @@ co_2d <- complex(
   re = rep(seq_along(erro_mat[1, ]) - 1, each = nrow(erro_mat)),
 )
 
-co <- c(co_2d, co_2d + 1000 + 1000*1i, co_2d + 2000 + 2000*1i)
+co <- c(co_2d, co_2d + 1000, co_2d + 2000)
 
-names(co) <- rep(as.numeric(erro_mat) %% 3, 3)
+names(co) <- rep(as.integer(erro_mat), 3)
 co <- co[as.character(floor(Re(co) / 1000)) != names(co)] #remove invalid squares
 
-
-make_dist_data <- function(x) {
-  lvl <- floor(Re(x) / 1e3) 
-  data.frame(from = x, to = c(co[abs(co - x) == 1], x - ((lvl- 2:0)*1e3*(1 + 1i))))
+find_neighbours <- function(z) { #given a square find all connected squares
+  lvl <- floor(Re(z) / 1e3)
+  type0 <- erro_mat[c(Im(z) + 1), c(Re(z) + 1 - lvl*1e3)]
+  new_lvl <- setdiff(0:2, c(lvl, type0))
+  x <- z - lvl*1e3 +  c(1i, -1, 1, -1i) 
+  x <- x[Re(x) >= 0 & Im(x) >= 0 & Re(x) < ncol(erro_mat) & Im(x) < nrow(erro_mat)] + lvl*1e3
+  type <- diag(erro_mat[c(Im(x) + 1), c(Re(x) + 1 - lvl*1e3)])
+  res <- x[type != lvl]
+  setNames(c(res, z - lvl*1e3 + new_lvl*1e3), c(rep("1", length(res)), "7")) #name of the square is its distance to z
 }
 
-make_dist_data2 <- function(x) {
-  data.frame(from = x, to = co[abs(co - x) <= 1])
-}
+lookup <- lapply(co, find_neighbours)
+names(lookup) <- co
 
 
-mymaze <- subset(do.call(rbind, lapply(co, make_dist_data)), to %in% co & from != to) # takes 1-2 minutes
-mymaze <- subset(do.call(rbind, lapply(co, make_dist_data2)), from != to) # takes 1-2 minutes
-mymaze$dist <- pmin(abs(mymaze$from - mymaze$to), 7)
-
-
-start_co <- 1000 + 1000*1i
-tar_co <- sum(tar * c(1, 1i)) + start_co
-
-#new bfs approach---------
-bfs <- function(.from = start_co) { #breadth fist search
+find_shortest_path <- function(.from, .to) { #breadth fist search
   queue <- .from
   visited <- complex()
   visited_timevec <- integer()
-  j <- 1L
   step <- 0L
-  while (length(queue) > 0) {
+  
+  while (TRUE) {
     idx <- step == min(step)
     parent <- queue[idx]
-    step_j <- step[idx]
+    step_j <- step[idx][1]
+    parent <- unique(unname(parent))
+    if (.to %in% parent) return(step_j)
     
     visited <- c(parent, visited)
-    visited_timevec <- c(step_j, visited_timevec)
     
-    nei <- mymaze[mymaze$from %in% parent & !(mymaze$to %in% visited), ]
+    nei <- unlist(unname(lookup[as.character(parent)]))
+    nei <- nei[!nei %in% visited]
+    
+    dist <- as.integer(names(nei))
     idx <- queue %in% parent
     
-    step <-  c(step[!idx], nei$dist + step_j[1])
-    queue <- c(queue[!idx], nei$to)
-    j <- j + 1
+    step <-  c(step[!idx], dist + step_j)
+    queue <- c(queue[!idx], nei)
   }
-  data.frame(v = visited, time = visited_timevec)
+  return(-1)
 }
 
-mybfs <- bfs() #takes 1-2 minutes
-mybfs[mybfs$v == tar_co, 2]
+find_shortest_path(.from = 1000 + 0*1i, .to = sum(tar * c(1, 1i)) + 1e3)
