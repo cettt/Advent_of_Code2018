@@ -11,18 +11,26 @@ mymap[as.character(data18) == "#"] <- 10L
 
 lookup <- lapply(seq_along(mymap), function(k) which(abs(co[k] - co) < 2))
 
+sum_cell <- function(k, themap) sum(themap[lookup[[k]]])
 
-update_map <- function(k, themap) {
-  z <- themap[k]
-  n <- sum(themap[lookup[[k]]])
-  n2 <- n %% 10L #number of trees
-  if (z == 0L & n2 >= 3L) 1L else if (z == 1L & n >= 30L) 10L else if (z == 10L & (n <= 19L | n2 == 0L)) 0L else z  
+update_map <- function(themap) {
+  sumvec <- sapply(seq_along(themap), function(k) sum(themap[lookup[[k]]]))
+  sumvec2 <- sumvec %% 10L
+  ifelse(
+    themap == 0L & sumvec2 < 3L, 0L, ifelse(
+      themap == 0L, 1L, ifelse(
+        themap == 1L & sumvec >= 30L, 10L, ifelse(
+          themap == 1L, 1L, ifelse(
+            sumvec >= 20L & sumvec2 > 0L, 10L, 0L
+          )
+        )
+      )
+    )
+  )
 }
 
 #part1------
-for (r in 1:10) {
-  mymap <- sapply(seq_along(mymap), update_map, themap = mymap)
-}
+for (r in 1:10) mymap <- update_map(mymap)
 
 prod(table(mymap)[-1]) 
 
@@ -30,13 +38,13 @@ prod(table(mymap)[-1])
 .T <- 1000000000L
 
 #after a while the pattern repeats itself white a cycle of length k
-for (r in seq_len(600)) mymap <- sapply(seq_along(mymap), update_map, themap = mymap)
+for (r in 1:600) mymap <- update_map(mymap)
 
 k <- 1L
 mymap0 <- mymap
 rv_vec <- integer(k)
 while (TRUE) {
-  mymap <- sapply(seq_along(mymap), update_map, themap = mymap)
+  mymap <- update_map(mymap)
   rv_vec[k] <- prod(table(mymap)[-1])
   if (identical(mymap, mymap0)) break
   k <- k + 1L
