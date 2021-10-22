@@ -12,19 +12,20 @@ carts0 <- data.frame(
 co[co %in% c("<", ">")] <- "-"
 co[co %in% c("v", "^")] <- "|"
 
-simulate_carts <- function(part1, carts = carts0) {
+simulate_carts <- function(carts = carts0) {
+  res <- character()
   
   while(nrow(carts) > 1) {
     carts$new_pos <- carts$pos + carts$dir
     carts$new_pos_type <- co[as.character(carts$new_pos)]
     
     carts$dir <- carts$dir * ifelse( #update cart direction
-      carts$new_pos_type %in% c("-", "|"), 1 + 0i, #new direction = old direction
+      carts$new_pos_type %in% c("-", "|"), 1, #new direction = old direction
       ifelse(
         carts$new_pos_type == "/", ifelse(Im(carts$dir) == 0, -1i, 1i),
         ifelse(
           carts$new_pos_type == "\\", ifelse(Im(carts$dir) == 0, 1i, -1i),
-          c(-1i, 1 + 0i, 1i)[carts$turn_counter %% 3 + 1] #intersections
+          c(-1i, 1, 1i)[carts$turn_counter %% 3 + 1] #intersections
         )
       )
     )
@@ -41,19 +42,19 @@ simulate_carts <- function(part1, carts = carts0) {
       
       if (any(crash)) {
         crash_pos <- unique(carts$new_pos[which(crash)])
-        if (part1) return(paste(Re(crash_pos), Im(crash_pos), sep = ","))
+        res <- c(res, paste(Re(crash_pos), Im(crash_pos), sep = ","))
         carts <- carts[!((carts$pos %in% crash_pos) | (carts$new_pos %in% crash_pos)), ]
       }
     }
     carts$pos <- carts$new_pos
   }
-  return(paste(Re(carts$pos), Im(carts$pos), sep = ","))
-  
+  return(c(paste(Re(carts$pos), Im(carts$pos), sep = ","), res))
 }
 
+carts <- simulate_carts()
 #part1--------
-simulate_carts(part1 = TRUE)
+carts[2]
 
 #part2--------
-simulate_carts(part1 = FALSE)
+carts[1]
 
