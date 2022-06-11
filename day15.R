@@ -1,5 +1,5 @@
 library(collections)
-data15 <- unlist(strsplit(readLines("H:/R/Sonstiges/__day15.txt"), ""))
+data15 <- unlist(strsplit(readLines("input/day15.txt"), ""))
 N <- length(data15)
 nr <- as.integer(sqrt(N))
 
